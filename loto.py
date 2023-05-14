@@ -328,3 +328,25 @@ def rank(source_data):
         rank.setdefault(temp_key, temp_value)
      
     return rank
+
+def generate_combinations(loto_data):
+        # ±1,2の数字を取得
+        serial_numbers = lt.serial_calculator(loto_data)
+
+        # english_calculatorの数字を取得
+        english_numbers = lt.english_calculator(loto_data)
+
+        # 共通部分の抽出
+        common_loto_numbers = set(serial_numbers) & set(english_numbers)
+        common_loto_numbers = sorted(list(common_loto_numbers))
+
+        # 差集合の作成
+        serial_numbers = set(serial_numbers) - set(common_loto_numbers)
+        serial_numbers = sorted(list(serial_numbers))
+        english_numbers = set(english_numbers) - set(common_loto_numbers)
+        english_numbers = sorted(list(english_numbers))
+
+        # common_loto_numbers, serial_numbers, english_numbersに含まれない数字を抽出
+        out_of_numbers = set(range(1, const.LOTO_MAX + 1)) - set(common_loto_numbers) - set(serial_numbers) - set(english_numbers)
+
+        return common_loto_numbers, serial_numbers, english_numbers, out_of_numbers

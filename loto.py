@@ -236,12 +236,13 @@ def english_calculator(combinations):
 
 
 
-# 直前の過去データの数±1、±2をした数字を生成する
+# 直前の過去データの数±1,2,3をした数字を生成する
 def serial_calculator(combinations):
     calculated_data = []
     # 出現した数字に±1を行う
+    max_loop = 3
     for temp_data in combinations:
-            for i in range(1, 3):
+            for i in range(1, max_loop + 1):
                 plus_data = temp_data + i
                 # 足してLOTO_MAXを超えるものは除外する
                 if plus_data <= const.LOTO_MAX:

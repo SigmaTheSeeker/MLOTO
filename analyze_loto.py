@@ -349,3 +349,39 @@ def analyze_serial_calculator():
     print("Count")
     for key, value in sorted(match_count.items()):
         print("{:>2} : {:>3}".format(key, value))
+
+
+def analyze_english_calculator():
+    import loto as lt
+    import constants as const
+    import numpy as np
+
+    # ロトの過去データファイルの読み込み
+    loto_data = lt.read_loto_data(const.LOTO_DATA_FILE)
+
+    # ロトの過去データを本数字のみのnumpy配列に変換
+    loto_num_data = np.array(loto_data)[
+        :, 2:const.LOTO_NUM + 2].astype(np.uint8)
+
+    match_count = {}
+    for i in range(len(loto_data) - 1):
+        temp_loto_num_data = loto_num_data[i : i + 1, :]
+        print("{}".format(temp_loto_num_data))
+        
+        # 最終結果の表示
+        print("Next:{}".format(loto_data[i + 1]))
+
+        # enlish_calculatorの数字を取得
+        english_numbers = lt.english_calculator(temp_loto_num_data[0])
+        print("English:({}){}".format(len(english_numbers), english_numbers))
+
+        # 最終結果と同じ数字がいくつあったかを数える
+        temp_match = len(set(english_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
+        print("{}".format(temp_match))
+
+        match_count.setdefault(temp_match, 0)
+        match_count[temp_match] += 1
+
+    print("Count")
+    for key, value in sorted(match_count.items()):
+        print("{:>2} : {:>3}".format(key, value))

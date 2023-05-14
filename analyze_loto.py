@@ -458,6 +458,7 @@ def analyze_mix():
 
     rank_count = {}
     match_count = {}
+    hit_count = {}
     for i in range(len(loto_data) - even_odd_index - 1):
         temp_loto_num_data = loto_num_data[0 : even_odd_index + i + 1, :]
         
@@ -511,15 +512,46 @@ def analyze_mix():
         match_count.setdefault(temp_key, 0)
         match_count[temp_key] += 1
 
+        # 各集計結果を平均値以上の値をもつものだけを残す
+        than_average_match_count = {}
+        temp_average = sum(match_count.values()) / len(match_count)
+        for key, value in sorted(match_count.items()):
+            if value > temp_average:
+                than_average_match_count.setdefault(key, value)
+
+        than_average_even_odd_count = {}
+        temp_average = sum(loto_even_odd_count.values()) / len(loto_even_odd_count)
+        for key, value in sorted(loto_even_odd_count.items()):
+            if value > temp_average:
+                than_average_even_odd_count.setdefault(key, value)
+
+        # 平均以上の値をもつ集計結果の表示
+        print("Than Average Match")
+        for key, value in sorted(than_average_match_count.items()):
+            print("{} : {:>3}".format(key, value))
+        print("Than Average Even Odd")
+        for key, value in sorted(than_average_even_odd_count.items()):
+            print("{} : {:>3}".format(key, value))
+
+        # 平均以上の値をもつ集計表に次回結果が含まれているかを確認
+        temp_match_flag = 0
+        tmp_even_odd_flag = 0
+        if temp_key in than_average_match_count:
+            print("Match: {}".format(temp_key))
+            temp_match_flag = 1
+        if tuple(list(lt.get_even_odd(temp_loto_num_data[-1]))) in than_average_even_odd_count:
+            print("Even Odd: {}".format(lt.get_even_odd(temp_loto_num_data[-1])))
+            tmp_even_odd_flag = 1
+
+        hit_count.setdefault((temp_match_flag, tmp_even_odd_flag), 0)
+        hit_count[(temp_match_flag, tmp_even_odd_flag)] += 1
+
     print("Rank")
     for key, value in sorted(rank_count.items()):
         print("{:>2} : {:>3}".format(key, value))
     print("Count")
     for key, value in sorted(match_count.items()):
         print("{} : {:>3}".format(key, value))
-    temp_average = sum(match_count.values()) / len(match_count)
-    print("Average: {}".format(temp_average))
-    print("Than Anverage")
-    for key, value in sorted(match_count.items()):
-        if value > temp_average:
-            print("{} : {:>3}".format(key, value))
+    print("Hit Count")
+    for key, value in sorted(hit_count.items()):
+        print("{} : {:>3}".format(key, value))

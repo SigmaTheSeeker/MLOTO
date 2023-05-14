@@ -453,3 +453,55 @@ def analyze_combinations():
     for key, value in sorted(match_count.items()):
         if value > temp_average:
             print("{} : {:>3}".format(key, value))
+
+
+def analyze_mix():
+    import loto as lt
+    import constants as const
+    import numpy as np
+
+    # ロトの過去データファイルの読み込み
+    loto_data = lt.read_loto_data(const.LOTO_DATA_FILE)
+
+    # ロトの過去データを本数字のみのnumpy配列に変換
+    loto_num_data = np.array(loto_data)[
+        :, 2:const.LOTO_NUM + 2].astype(np.uint8)
+
+    match_count = {}
+    for i in range(len(loto_data) - 1):
+        temp_loto_num_data = loto_num_data[i : i + 1, :]
+        print("{}".format(temp_loto_num_data))
+        
+        # 最終結果の表示
+        print("Next:{}".format(loto_data[i + 1]))
+
+        # 数字の組合せを作成
+        common_loto_numbers, serial_numbers, english_numbers, out_of_numbers = lt.generate_combinations(temp_loto_num_data[0])
+
+        # common_loto_numbers, serial_numbers, english_numbersの表示
+        print("Common:({}){}".format(len(common_loto_numbers), common_loto_numbers))
+        print("Serial:({}){}".format(len(serial_numbers), serial_numbers))
+        print("English:({}){}".format(len(english_numbers), english_numbers))
+        print("Out of:({}){}".format(len(out_of_numbers), out_of_numbers))
+
+
+        # 最終結果と同じ数字がいくつあったかを数える
+        temp_match_common = len(set(common_loto_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
+        temp_match_serial = len(set(serial_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
+        temp_match_english = len(set(english_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
+        temp_match_out_of = len(set(out_of_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
+        print("({:>2}):({:>2}):({:>2}):({:>2})".format(temp_match_common, temp_match_serial, temp_match_english, temp_match_out_of))
+
+        temp_key = (temp_match_common, temp_match_serial, temp_match_english, temp_match_out_of)
+        match_count.setdefault(temp_key, 0)
+        match_count[temp_key] += 1
+
+    print("Count")
+    for key, value in sorted(match_count.items()):
+        print("{} : {:>3}".format(key, value))
+    temp_average = sum(match_count.values()) / len(match_count)
+    print("Average: {}".format(temp_average))
+    print("Than Anverage")
+    for key, value in sorted(match_count.items()):
+        if value > temp_average:
+            print("{} : {:>3}".format(key, value))

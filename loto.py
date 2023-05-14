@@ -330,11 +330,11 @@ def rank(source_data):
     return rank
 
 def generate_combinations(loto_data):
-        # ±1,2の数字を取得
-        serial_numbers = lt.serial_calculator(loto_data)
+        # ±1,2,3の数字を取得
+        serial_numbers = serial_calculator(loto_data)
 
         # english_calculatorの数字を取得
-        english_numbers = lt.english_calculator(loto_data)
+        english_numbers = english_calculator(loto_data)
 
         # 共通部分の抽出
         common_loto_numbers = set(serial_numbers) & set(english_numbers)

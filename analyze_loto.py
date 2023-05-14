@@ -251,3 +251,48 @@ def analyze_even_odd():
     print("Rank")
     for key, value in sorted(rank_count.items()):
         print("{:>2} : {:>3}".format(key, value))
+
+
+def analyze_number_in_number():
+    import loto as lt
+    import constants as const
+    import numpy as np
+
+    # ロトの過去データファイルの読み込み
+    loto_data = lt.read_loto_data(const.LOTO_DATA_FILE)
+
+    # ロトの過去データを本数字のみのnumpy配列に変換
+    loto_num_data = np.array(loto_data)[
+        :, 2:const.LOTO_NUM + 2].astype(np.uint8)
+
+    much_count = {}
+    for i in range(len(loto_data) - const.LOTO_MAX):
+        temp_loto_num_data = loto_num_data[0 : const.LOTO_MAX + i, :]
+        
+        # 最終結果の表示
+        print("Next:{}".format(loto_data[len(temp_loto_num_data)]))
+        # print("{}".format(loto_data[len(temp_loto_num_data) - 1]))
+
+        # 最終結果の数字をインデックスにして過去のデータを取得
+        # 最終データを取り出す
+        next_numbers = []
+        temp_loto_index = temp_loto_num_data[-1, :]
+        # print("{}".format(temp_loto_index))
+        for j, temp_num in enumerate(temp_loto_index):
+            # print("{}".format(loto_data[len(temp_loto_num_data) - temp_num - 1]))
+            # print("{}".format(temp_loto_num_data[len(temp_loto_num_data) - temp_num - 1, :]))
+            # print("{}".format(temp_loto_num_data[len(temp_loto_num_data) - temp_num - 1, j]))
+            next_numbers.append(temp_loto_num_data[len(temp_loto_num_data) - temp_num - 1, j])
+        else:
+            print("{}".format(next_numbers))
+        
+        # 最終結果と同じ数字がいくつあったかを数える
+        temp_much = len(set(next_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
+        print("{}".format(temp_much))
+        much_count.setdefault(temp_much, 0)
+        much_count[temp_much] += 1
+    else:
+        print("Count")
+        for key, value in sorted(much_count.items()):
+            print("{:>2} : {:>3}".format(key, value))
+    

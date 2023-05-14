@@ -236,19 +236,20 @@ def english_calculator(combinations):
 
 
 
-# 直前の過去データの数±1をした数字を生成する
+# 直前の過去データの数±1、±2をした数字を生成する
 def serial_calculator(combinations):
     calculated_data = []
     # 出現した数字に±1を行う
     for temp_data in combinations:
-            plus_data = temp_data + 1
-            # 足して43を超えるものは除外する
-            if plus_data <= const.LOTO_MAX:
-                calculated_data.append(plus_data)
-            minus_data = temp_data - 1
-            # 引いて1を下回るものは除外する
-            if minus_data >= 1:
-                calculated_data.append(minus_data)
+            for i in range(1, 3):
+                plus_data = temp_data + i
+                # 足してLOTO_MAXを超えるものは除外する
+                if plus_data <= const.LOTO_MAX:
+                    calculated_data.append(plus_data)
+                minus_data = temp_data - i
+                # 引いて1を下回るものは除外する
+                if minus_data >= 1:
+                    calculated_data.append(minus_data)
 
     # 重複するデータを削除し、昇順にソートした結果を返す
     return sorted(list(set(calculated_data)))

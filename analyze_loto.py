@@ -337,7 +337,7 @@ def analyze_serial_calculator():
 
         # ±1,2の数字を取得
         serial_numbers = lt.serial_calculator(temp_loto_num_data[0])
-        print("Serial:{}".format(serial_numbers))
+        print("Serial:({}){}".format(len(serial_numbers), serial_numbers)
 
         # 最終結果と同じ数字がいくつあったかを数える
         temp_match = len(set(serial_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))

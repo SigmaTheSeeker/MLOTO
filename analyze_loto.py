@@ -272,10 +272,6 @@ def analyze_even_odd():
 
 
 def analyze_number_in_number():
-    import loto as lt
-    import constants as const
-    import numpy as np
-
     # ロトの過去データファイルの読み込み
     loto_data = lt.read_loto_data(const.LOTO_DATA_FILE)
 
@@ -316,10 +312,6 @@ def analyze_number_in_number():
 
 
 def analyze_serial_calculator():
-    import loto as lt
-    import constants as const
-    import numpy as np
-
     # ロトの過去データファイルの読み込み
     loto_data = lt.read_loto_data(const.LOTO_DATA_FILE)
 
@@ -352,10 +344,6 @@ def analyze_serial_calculator():
 
 
 def analyze_english_calculator():
-    import loto as lt
-    import constants as const
-    import numpy as np
-
     # ロトの過去データファイルの読み込み
     loto_data = lt.read_loto_data(const.LOTO_DATA_FILE)
 
@@ -388,10 +376,6 @@ def analyze_english_calculator():
 
 
 def analyze_combinations():
-    import loto as lt
-    import constants as const
-    import numpy as np
-
     # ロトの過去データファイルの読み込み
     loto_data = lt.read_loto_data(const.LOTO_DATA_FILE)
 
@@ -407,7 +391,7 @@ def analyze_combinations():
         # 最終結果の表示
         print("Next:{}".format(loto_data[i + 1]))
 
-        # ±1,2の数字を取得
+        # ±1,2,3の数字を取得
         serial_numbers = lt.serial_calculator(temp_loto_num_data[0])
 
         # english_calculatorの数字を取得
@@ -456,10 +440,6 @@ def analyze_combinations():
 
 
 def analyze_mix():
-    import loto as lt
-    import constants as const
-    import numpy as np
-
     # ロトの過去データファイルの読み込み
     loto_data = lt.read_loto_data(const.LOTO_DATA_FILE)
 

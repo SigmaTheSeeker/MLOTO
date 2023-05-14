@@ -447,16 +447,51 @@ def analyze_mix():
     loto_num_data = np.array(loto_data)[
         :, 2:const.LOTO_NUM + 2].astype(np.uint8)
 
-    match_count = {}
+    # len(loto_even_odd_count) == 2 ** LOTO_NUMになる集計範囲を調べる
     for i in range(len(loto_data) - 1):
-        temp_loto_num_data = loto_num_data[i : i + 1, :]
-        print("{}".format(temp_loto_num_data))
+        # ロトの過去データの集計(偶数奇数)
+        loto_even_odd_count = lt.even_odd_count(
+            lt.get_even_odd(loto_num_data[0:i + 1, :]))
+        if len(loto_even_odd_count) == (2 ** const.LOTO_NUM):
+            even_odd_index = i
+            break
+
+    rank_count = {}
+    match_count = {}
+    for i in range(len(loto_data) - even_odd_index - 1):
+        temp_loto_num_data = loto_num_data[0 : even_odd_index + i + 1, :]
         
-        # 最終結果の表示
-        print("Next:{}".format(loto_data[i + 1]))
+        # ロトの過去データの集計(偶数奇数)
+        loto_even_odd_count = lt.even_odd_count(
+            lt.get_even_odd(temp_loto_num_data))
+        # データの順位付け
+        temp_rank = list(loto_even_odd_count.values())
+        rank_loto_number_count = lt.rank(temp_rank)
+
+        # 結果の表示
+        print("[{}] - [{}]".format(1, (even_odd_index + 1) + i))
+        loto_even_odd_count = sorted(loto_even_odd_count.items())
+        loto_even_odd_count = dict((x, y)
+                                   for x, y in loto_even_odd_count)  # 追加
+        # for temp_key, temp_value in loto_even_odd_count.items():
+        #     print("[{}]:({:>4}):{:>3}".format(temp_key, int(
+        #         temp_value), rank_loto_number_count[temp_value]))
+        # else:
+        print("Next:{}".format(loto_data[even_odd_index + i + 1]))
+        print("Current: {}".format(loto_data[even_odd_index + i]))
+        print("{} :".format(temp_loto_num_data[-1]))
+        print("{} :".format(lt.get_even_odd(
+            temp_loto_num_data[-1])), end=" ")
+        temp_rank = rank_loto_number_count[loto_even_odd_count[tuple(
+            lt.get_even_odd(temp_loto_num_data[-1]))]]
+        print("({})".format(temp_rank))
+        # Rankの集計
+        rank_count.setdefault(temp_rank, 0)
+        rank_count[temp_rank] += 1
+
 
         # 数字の組合せを作成
-        common_loto_numbers, serial_numbers, english_numbers, out_of_numbers = lt.generate_combinations(temp_loto_num_data[0])
+        common_loto_numbers, serial_numbers, english_numbers, out_of_numbers = lt.generate_combinations(temp_loto_num_data[-1])
 
         # common_loto_numbers, serial_numbers, english_numbersの表示
         print("Common:({}){}".format(len(common_loto_numbers), common_loto_numbers))
@@ -476,6 +511,9 @@ def analyze_mix():
         match_count.setdefault(temp_key, 0)
         match_count[temp_key] += 1
 
+    print("Rank")
+    for key, value in sorted(rank_count.items()):
+        print("{:>2} : {:>3}".format(key, value))
     print("Count")
     for key, value in sorted(match_count.items()):
         print("{} : {:>3}".format(key, value))

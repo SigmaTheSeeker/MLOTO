@@ -77,6 +77,9 @@ def analyze_number_count_range(n):
     sum_count = {}
     sum_rank = {}
     rank_combinations = {}
+    max_list = {}
+    min_list = {}
+    ave_list = {}
 
     print("各数字の出現回数(全区間)")
     for i in range(len(loto_data) - n - 1):
@@ -104,6 +107,12 @@ def analyze_number_count_range(n):
             print("max: {}".format(max(loto_number_count.values())))
             print("min: {}".format(min(loto_number_count.values())))
             print("Next: {}".format(loto_data[i + n + 1]))
+            max_list.setdefault(max(loto_number_count.values()), 0)
+            max_list[max(loto_number_count.values())] += 1
+            min_list.setdefault(min(loto_number_count.values()), 0)
+            min_list[min(loto_number_count.values())] += 1
+            ave_list.setdefault(np.average(list(loto_number_count.values())), 0)
+            ave_list[np.average(list(loto_number_count.values()))] += 1
 
         print("Rank")
         for temp_key, temp_value in sorted(loto_number_count.items()):
@@ -188,6 +197,15 @@ def analyze_number_count_range(n):
         print("Rank Combination")
         for key, value in sorted(rank_combinations.items()):
             print("{} : {:>4}".format(key, value))
+        print("Max List")
+        for key, value in sorted(max_list.items()):
+            print("{:>3} : {:>3}".format(key, value))
+        print("Min List")
+        for key, value in sorted(min_list.items()):
+            print("{:>3} : {:>3}".format(key, value))
+        print("Ave List")
+        for key, value in sorted(ave_list.items()):
+            print("{:>3} : {:>3}".format(key, value))
 
 
 # 偶数奇数の組合せ

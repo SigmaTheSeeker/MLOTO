@@ -562,6 +562,37 @@ def analyze_mix():
         hit_count.setdefault((temp_match_flag, tmp_even_odd_flag, temp_sum_flag), 0)
         hit_count[(temp_match_flag, tmp_even_odd_flag, temp_sum_flag)] += 1
 
+
+        # 条件に合う数字の組合せを作成
+        all_loto = lt.all_loto_combinations()
+        selected_loto = []
+        for temp_all_loto in all_loto:
+            # 合計値の確認
+            if sum(temp_all_loto) not in than_average_sum_count:
+                continue
+            # 偶数奇数の確認
+            if tuple(list(lt.get_even_odd(temp_all_loto))) not in than_average_even_odd_count:
+                continue
+            # 数字の組合せの確認
+            for temp_key in than_average_match_count:
+                # common_loto_numbers
+                if len(set(temp_all_loto) & set(common_loto_numbers)) != temp_key[0]:
+                    continue
+                # serial_numbers
+                if len(set(temp_all_loto) & set(serial_numbers)) != temp_key[1]:
+                    continue
+                # english_numbers
+                if len(set(temp_all_loto) & set(english_numbers)) != temp_key[2]:
+                    continue
+                # out_of_numbers
+                if len(set(temp_all_loto) & set(out_of_numbers)) != temp_key[3]:
+                    continue
+                selected_loto.append(temp_all_loto)
+    
+        # 選択された数字の組合せの表示
+        print("Selected Loto")
+        print("{}".format(len(selected_loto)))
+
     print("Rank")
     for key, value in sorted(rank_count.items()):
         print("{:>2} : {:>3}".format(key, value))

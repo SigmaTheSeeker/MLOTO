@@ -6,6 +6,8 @@ import constants as const
 import loto as lt
 import numpy as np
 import pprint as pp
+import itertools
+import math
 
 # 追加予定の機能
 # =====+=====+=====+=====+=====+=====
@@ -316,10 +318,10 @@ def analyze_serial_calculator():
     loto_data = lt.read_loto_data(const.LOTO_DATA_FILE)
 
     # ロトの過去データを本数字のみのnumpy配列に変換
-    loto_num_data = np.array(loto_data)[
-        :, 2:const.LOTO_NUM + 2].astype(np.uint8)
+    loto_num_data = np.array(loto_data)[:, 2:const.LOTO_NUM + 2].astype(np.uint8)
 
     match_count = {}
+    without_self_match_count = {}
     for i in range(len(loto_data) - 1):
         temp_loto_num_data = loto_num_data[i : i + 1, :]
         print("{}".format(temp_loto_num_data))
@@ -327,19 +329,32 @@ def analyze_serial_calculator():
         # 最終結果の表示
         print("Next:{}".format(loto_data[i + 1]))
 
-        # ±1,2の数字を取得
+        # ±1,2,3の数字を取得
         serial_numbers = lt.serial_calculator(temp_loto_num_data[0])
+        without_self_serial_numbers = set(serial_numbers) - set(temp_loto_num_data[0])
         print("Serial:({}){}".format(len(serial_numbers), serial_numbers))
+        print("Combinations:({})".format(math.comb(len(serial_numbers), 5)))
+        print("Without Self Serial:({}){}".format(len(without_self_serial_numbers), without_self_serial_numbers))
+        print("Combinations:({})".format(math.comb(len(without_self_serial_numbers), 5)))
+
 
         # 最終結果と同じ数字がいくつあったかを数える
-        temp_match = len(set(serial_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
-        print("{}".format(temp_match))
+        temp_match = sorted(list(set(serial_numbers) & set(loto_data[i + 1][2:const.LOTO_NUM + 2])))
+        print("({:>2}){}".format(len(temp_match), temp_match))
+        temp_without_self_match = sorted(list(set(without_self_serial_numbers) & set(loto_data[i + 1][2:const.LOTO_NUM + 2])))
+        print("({:>2}){}".format(len(temp_without_self_match), temp_without_self_match))
 
-        match_count.setdefault(temp_match, 0)
-        match_count[temp_match] += 1
+        match_count.setdefault(len(temp_match), 0)
+        match_count[len(temp_match)] += 1
+        without_self_match_count.setdefault(len(temp_without_self_match), 0)
+        without_self_match_count[len(temp_without_self_match)] += 1
+
 
     print("Count")
     for key, value in sorted(match_count.items()):
+        print("{:>2} : {:>3}".format(key, value))
+    print("Without Self Count")
+    for key, value in sorted(without_self_match_count.items()):
         print("{:>2} : {:>3}".format(key, value))
 
 
@@ -447,6 +462,20 @@ def analyze_mix():
     loto_num_data = np.array(loto_data)[
         :, 2:const.LOTO_NUM + 2].astype(np.uint8)
 
+    index_list = []    
+    # 各数字が1回以上出現する範囲を調べる 
+    range_index = 0
+    loto_num_count = np.zeros((const.LOTO_MAX), dtype=np.uint16)
+    for i, numbers in enumerate(loto_num_data):
+        for num in numbers:
+            loto_num_count[num - 1] += 1
+        if np.min(loto_num_count) >= 1:
+            range_index = i
+            break
+    # 結果の表示
+    print("range_index: {}".format(range_index))
+    index_list.append(range_index)
+
     # len(loto_even_odd_count) == 2 ** LOTO_NUMになる集計範囲を調べる
     for i in range(len(loto_data) - 1):
         # ロトの過去データの集計(偶数奇数)
@@ -455,12 +484,51 @@ def analyze_mix():
         if len(loto_even_odd_count) == (2 ** const.LOTO_NUM):
             even_odd_index = i
             break
+    # 結果の表示
+    print("even_odd_index: {}".format(even_odd_index))
+    index_list.append(even_odd_index)
 
+    # 数字の組合せの集計範囲を平均以上のデータにしたときにデータが1つ以上残る範囲
+    match_count ={}
+    for i in range(len(loto_data) - 1):
+        temp_loto_num_data = loto_num_data[0 : i + 1, :]
+        
+        # 数字の組合せを作成
+        common_loto_numbers, serial_numbers, english_numbers, out_of_numbers = lt.generate_combinations(temp_loto_num_data[-1])
+
+        # 最終結果と同じ数字がいくつあったかを数える
+        temp_match_common = len(set(common_loto_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
+        temp_match_serial = len(set(serial_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
+        temp_match_english = len(set(english_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
+        temp_match_out_of = len(set(out_of_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
+        temp_key = (temp_match_common, temp_match_serial, temp_match_english, temp_match_out_of)
+        match_count.setdefault(temp_key, 0)
+        match_count[temp_key] += 1
+
+         # 各集計結果を平均値以上の値をもつものだけを残す
+        than_average_match_count = {}
+        temp_average = sum(match_count.values()) / len(match_count)
+        for key, value in sorted(match_count.items()):
+            if value > temp_average:
+                than_average_match_count.setdefault(key, value)
+
+       # データの個数が1以上になる範囲を調べる
+        if len(than_average_match_count) > 0:
+            combinations_index = i
+            break
+
+    # 結果の表示
+    print("combinations_index: {}".format(combinations_index))
+    index_list.append(combinations_index)
+   
+    # 解析範囲のインデクスを作成する
+    main_index = max(index_list)
+   
     rank_count = {}
     match_count = {}
     hit_count = {}
-    for i in range(len(loto_data) - even_odd_index - 1):
-        temp_loto_num_data = loto_num_data[0 : even_odd_index + i + 1, :]
+    for i in range(len(loto_data) - main_index - 1):
+        temp_loto_num_data = loto_num_data[0 : main_index + i + 1, :]
         
         # ロトの過去データの集計(偶数奇数)
         loto_even_odd_count = lt.even_odd_count(
@@ -474,22 +542,11 @@ def analyze_mix():
         loto_even_odd_count = sorted(loto_even_odd_count.items())
         loto_even_odd_count = dict((x, y)
                                    for x, y in loto_even_odd_count)  # 追加
-        # for temp_key, temp_value in loto_even_odd_count.items():
-        #     print("[{}]:({:>4}):{:>3}".format(temp_key, int(
-        #         temp_value), rank_loto_number_count[temp_value]))
-        # else:
         print("Next:{}".format(loto_data[even_odd_index + i + 1]))
         print("Current: {}".format(loto_data[even_odd_index + i]))
         print("{} :".format(temp_loto_num_data[-1]))
         print("{} :".format(lt.get_even_odd(
             temp_loto_num_data[-1])), end=" ")
-        temp_rank = rank_loto_number_count[loto_even_odd_count[tuple(
-            lt.get_even_odd(temp_loto_num_data[-1]))]]
-        print("({})".format(temp_rank))
-        # Rankの集計
-        rank_count.setdefault(temp_rank, 0)
-        rank_count[temp_rank] += 1
-
 
         # 数字の組合せを作成
         common_loto_numbers, serial_numbers, english_numbers, out_of_numbers = lt.generate_combinations(temp_loto_num_data[-1])
@@ -499,7 +556,6 @@ def analyze_mix():
         print("Serial:({}){}".format(len(serial_numbers), serial_numbers))
         print("English:({}){}".format(len(english_numbers), english_numbers))
         print("Out of:({}){}".format(len(out_of_numbers), out_of_numbers))
-
 
         # 最終結果と同じ数字がいくつあったかを数える
         temp_match_common = len(set(common_loto_numbers) & set(loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]))
@@ -514,6 +570,52 @@ def analyze_mix():
 
         # 合計値の集計
         sum_count = lt.sum_count(temp_loto_num_data)
+
+        # 24回分の各数字の出現数をカウントする
+        n = 24
+        sum_rank ={}
+        for j in range(len(temp_loto_num_data)  - n - 1):
+            temp_n_loto_num_data = temp_loto_num_data[j:j + n, :]
+
+            # ロトの過去データの集計(各数字の出現回数)
+            loto_number_count = lt.number_count(temp_n_loto_num_data)
+            # データのチェック
+            for k in range(const.LOTO_MAX):
+                if k + 1 not in loto_number_count:
+                    loto_number_count.setdefault(k + 1, 0)
+            # データの順位付け
+            temp_rank = list(loto_number_count.values())
+            rank_loto_number_count = lt.rank(temp_rank)
+
+            temp_sum_rank = 0
+            temp_rank_combination = []
+            for num in temp_loto_num_data[i + n + 1]:
+                temp_rank = rank_loto_number_count[loto_number_count[num]]
+                # print("[{:>2}]:({:>4})".format(num, temp_rank), end=" ")
+                temp_sum_rank += temp_rank
+                temp_rank_combination.append(temp_rank)
+            else:
+                # print("")
+                sum_rank.setdefault(temp_sum_rank, 1)
+                sum_rank[temp_sum_rank] += 1
+
+        # 最新の24回分の各数字の出現数をカウントする
+        n = 24
+        temp_n_loto_num_data = temp_loto_num_data[-n:, :]
+        # ロトの過去データの集計(各数字の出現回数)
+        loto_number_count = lt.number_count(temp_n_loto_num_data)
+        # データのチェック
+        for j in range(const.LOTO_MAX):
+            if j + 1 not in loto_number_count:
+                loto_number_count.setdefault(j + 1, 0)
+        # データの順位付け
+        temp_rank = list(loto_number_count.values())
+        rank_loto_number_count = lt.rank(temp_rank)
+
+        for num in loto_data[len(temp_loto_num_data)][2:const.LOTO_NUM + 2]:
+            temp_rank = rank_loto_number_count[loto_number_count[num]]
+            # print("[{:>2}]:({:>4})".format(num, temp_rank), end=" ")
+            temp_sum_rank += temp_rank
 
         # 各集計結果を平均値以上の値をもつものだけを残す
         than_average_match_count = {}
@@ -534,6 +636,12 @@ def analyze_mix():
             if value > temp_average:
                 than_average_sum_count.setdefault(key, value)
 
+        than_average_sum_rank = {}
+        temp_average = sum(sum_rank.values()) / len(sum_rank)
+        for key, value in sorted(sum_rank.items()):
+            if value > temp_average:
+                than_average_sum_rank.setdefault(key, value)
+
         # 平均以上の値をもつ集計結果の表示
         print("Than Average Match")
         for key, value in sorted(than_average_match_count.items()):
@@ -544,11 +652,17 @@ def analyze_mix():
         print("Than Average Sum")
         for key, value in sorted(than_average_sum_count.items()):
             print("{} : {:>3}".format(key, value))
+        print("Than Sum Rank")
+        for key, value in sorted(than_average_sum_rank.items()):
+            print("{} : {:>3}".format(key, value))
+        print(len(sum_rank))
+
 
         # 平均以上の値をもつ集計表に次回結果が含まれているかを確認
         temp_match_flag = 0
         tmp_even_odd_flag = 0
         temp_sum_flag = 0
+        temp_rank_flag = 0
         if temp_key in than_average_match_count:
             print("Match: {}".format(temp_key))
             temp_match_flag = 1
@@ -558,9 +672,12 @@ def analyze_mix():
         if sum(temp_loto_num_data[-1]) in than_average_sum_count:
             print("Sum: {}".format(sum(temp_loto_num_data[-1])))
             temp_sum_flag = 1
+        if temp_sum_rank in than_average_sum_rank:
+            print("Sum Rank: {}".format(temp_sum_rank))
+            temp_rank_flag = 1
 
-        hit_count.setdefault((temp_match_flag, tmp_even_odd_flag, temp_sum_flag), 0)
-        hit_count[(temp_match_flag, tmp_even_odd_flag, temp_sum_flag)] += 1
+        hit_count.setdefault((temp_match_flag, tmp_even_odd_flag, temp_sum_flag, temp_rank_flag), 0)
+        hit_count[(temp_match_flag, tmp_even_odd_flag, temp_sum_flag, temp_rank_flag)] += 1
 
 
         # 条件に合う数字の組合せを作成
@@ -572,6 +689,9 @@ def analyze_mix():
                 continue
             # 偶数奇数の確認
             if tuple(list(lt.get_even_odd(temp_all_loto))) not in than_average_even_odd_count:
+                continue
+            # ランクの合計
+            if temp_sum_rank in than_average_sum_rank:
                 continue
             # 数字の組合せの確認
             for temp_key in than_average_match_count:
@@ -593,12 +713,6 @@ def analyze_mix():
         print("Selected Loto")
         print("{}".format(len(selected_loto)))
 
-    print("Rank")
-    for key, value in sorted(rank_count.items()):
-        print("{:>2} : {:>3}".format(key, value))
-    print("Count")
-    for key, value in sorted(match_count.items()):
-        print("{} : {:>3}".format(key, value))
     print("Hit Count")
     for key, value in sorted(hit_count.items()):
         print("{} : {:>3}".format(key, value))

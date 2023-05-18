@@ -143,11 +143,9 @@ def read_loto_data(loto_data_file):
         return None
 
 
-def all_loto_combinations():
-    # 1から43までの数字を持つ配列を作成
-    numbers = np.arange(1, const.LOTO_MAX + 1, dtype=np.uint8)
+def all_loto_combinations(numbers):
 
-    # 6つの数字の組み合わせを作成
+    # ロトの数字の組み合わせを作成
     all_loto_combinations = np.array(list(itertools.combinations(numbers, const.LOTO_NUM))).astype(np.uint8)
 
     return all_loto_combinations

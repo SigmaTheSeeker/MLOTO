@@ -322,6 +322,12 @@ def analyze_serial_calculator():
 
     match_count = {}
     without_self_match_count = {}
+    length_serial_numbers = {}
+    length_without_self_serial_numbers = {}
+    length_serial_numbers_max = 0
+    length_serial_numbers_min = 999999
+    length_without_self_serial_numbers_max = 0
+    length_without_self_serial_numbers_min = 999999
     for i in range(len(loto_data) - 1):
         temp_loto_num_data = loto_num_data[i : i + 1, :]
         print("{}".format(temp_loto_num_data))
@@ -332,11 +338,24 @@ def analyze_serial_calculator():
         # ±1,2,3の数字を取得
         serial_numbers = lt.serial_calculator(temp_loto_num_data[0])
         without_self_serial_numbers = set(serial_numbers) - set(temp_loto_num_data[0])
+    
         print("Serial:({}){}".format(len(serial_numbers), serial_numbers))
         print("Combinations:({})".format(math.comb(len(serial_numbers), 5)))
+        length_serial_numbers.setdefault(len(serial_numbers), 0)
+        length_serial_numbers[len(serial_numbers)] += 1
+        if len(serial_numbers) > length_serial_numbers_max:
+            length_serial_numbers_max = len(serial_numbers)
+        if len(serial_numbers) < length_serial_numbers_min:
+            length_serial_numbers_min = len(serial_numbers)
+    
         print("Without Self Serial:({}){}".format(len(without_self_serial_numbers), without_self_serial_numbers))
         print("Combinations:({})".format(math.comb(len(without_self_serial_numbers), 5)))
-
+        length_without_self_serial_numbers.setdefault(len(without_self_serial_numbers), 0)
+        length_without_self_serial_numbers[len(without_self_serial_numbers)] += 1
+        if len(without_self_serial_numbers) > length_without_self_serial_numbers_max:
+            length_without_self_serial_numbers_max = len(without_self_serial_numbers)
+        if len(without_self_serial_numbers) < length_without_self_serial_numbers_min:
+            length_without_self_serial_numbers_min = len(without_self_serial_numbers)
 
         # 最終結果と同じ数字がいくつあったかを数える
         temp_match = sorted(list(set(serial_numbers) & set(loto_data[i + 1][2:const.LOTO_NUM + 2])))
@@ -353,9 +372,17 @@ def analyze_serial_calculator():
     print("Count")
     for key, value in sorted(match_count.items()):
         print("{:>2} : {:>3}".format(key, value))
+    print("Length Serial Numbers")
+    for key, value in sorted(length_serial_numbers.items()):
+        print("{:>2} : {:>3}".format(key, value))
+    print("Max: {:>3}  Min: {:>3}".format(length_serial_numbers_max, length_serial_numbers_min))
     print("Without Self Count")
     for key, value in sorted(without_self_match_count.items()):
         print("{:>2} : {:>3}".format(key, value))
+    print("Length Without Self Serial Numbers")
+    for key, value in sorted(length_without_self_serial_numbers.items()):
+        print("{:>2} : {:>3}".format(key, value))
+    print("Max: {:>3}  Min: {:>3}".format(length_without_self_serial_numbers_max, length_without_self_serial_numbers_min))
 
 
 def analyze_english_calculator():

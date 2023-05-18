@@ -681,7 +681,8 @@ def analyze_mix():
 
 
         # 条件に合う数字の組合せを作成
-        all_loto = lt.all_loto_combinations()
+        numbars = range(1, const.LOTO_MAX + 1)
+        all_loto = lt.all_loto_combinations(numbers)
         selected_loto = []
         for temp_all_loto in all_loto:
             # 合計値の確認

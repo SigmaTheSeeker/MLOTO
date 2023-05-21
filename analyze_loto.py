@@ -743,3 +743,58 @@ def analyze_mix():
     print("Hit Count")
     for key, value in sorted(hit_count.items()):
         print("{} : {:>3}".format(key, value))
+
+
+# 前後の組み合わの集計
+def analyze_columns():
+    from collections import Counter
+
+    counter = Counter()
+
+    # ロトの過去データファイルの読み込み
+    loto_data = lt.read_loto_data(const.LOTO_DATA_FILE)
+
+    # ロトの過去データを本数字のみのnumpy配列に変換
+    loto_num_data = np.array(loto_data)[:, 2:const.LOTO_NUM + 2].astype(np.uint8)
+
+    # 前後の組み合わせを作成
+    # loto_num_data[0] = [1, 2, 3, 4, 5, 6]
+    # loto_num_data[1] = [2, 3, 4, 5, 6, 7]
+    # combination = [(loto_num_data[0][i], j, loto_num_data[1][j]) for j in range(len(loto_num_data[0]))]
+    for i in range(len(loto_num_data) - 1):
+        for j in range(const.LOTO_NUM):
+            temp_combination = [(loto_num_data[i][j], k, loto_num_data[i + 1][k]) for k in range(const.LOTO_NUM)]
+            counter.update(temp_combination)
+
+    # キー順にソートして出力
+    # (key[0], key[1])の値が変わるごとに合計と平均を出力する
+    temp_key0 = 1
+    temp_key1 = 0
+    temp_sum = 0
+    temp_count = 0
+    average_list = {}
+    for key, value in sorted(counter.items()):
+        if temp_key0 != key[0] or temp_key1 != key[1]:
+            print("({:>2}, {:>1}) : {:>3} : {:>3}".format(temp_key0, temp_key1, temp_sum, temp_sum / temp_count))
+            average_list.setdefault((temp_key0, temp_key1), temp_sum / temp_count)
+            temp_key0 = key[0]
+            temp_key1 = key[1]
+            temp_sum = 0
+            temp_count = 0
+        print("({:>2}, {:>1}, {:>2}) : {:>3}".format(key[0], key[1], key[2], value))
+        temp_sum += value
+        temp_count += 1
+    else:
+        print("({:>2}, {:>1}) : {:>3} : {:>3}".format(temp_key0, temp_key1, temp_sum, temp_sum / temp_count))
+        average_list.setdefault((temp_key0, temp_key1), temp_sum / temp_count)
+
+
+
+    # # (key[0], key[1])の値ごのと平均値を参照して、平均値以上の値をもつものだけを残す
+    than_average_counter = {}
+    for key, value in sorted(counter.items()):
+        if value > average_list[(key[0], key[1])]:
+            than_average_counter.setdefault(key, value)
+    # キー順にソートして出力
+    for key, value in sorted(than_average_counter.items()):
+        print("({:>2}, {:>1}, {:>2}) : {:>3}".format(key[0], key[1], key[2], value))

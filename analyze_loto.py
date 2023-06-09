@@ -799,3 +799,66 @@ def analyze_columns():
     # キー順にソートして出力
     for key, value in sorted(than_average_counter.items()):
         print("({:>2}, {:>1}, {:>2}) : {:>3}".format(key[0], key[1], key[2], value))
+
+# 過去データの解析
+def analyze_loto_data():
+
+    # ロトの過去データファイルの読み込み
+    loto_data = lt.read_loto_data(const.LOTO_DATA_FILE)
+
+    # ロトの過去データを本数字のみのnumpy配列に変換
+    loto_num_data = np.array(loto_data)[:, 2:const.LOTO_NUM + 2].astype(np.uint8)
+
+    # 過去データに同じ抽選結果があるかを確認
+    for i in range(len(loto_data) - 1):
+        for j in range(i + 1, len(loto_data)):
+            if np.all(loto_num_data[i] == loto_num_data[j]):
+                print("Same: {} - {}".format(i + 1, j + 1))
+                print("{}".format(loto_data[i]))
+                print("{}".format(loto_data[j]))
+
+    # 前後のデータに同じ数字があるかを確認
+    # いくつ同じ数字があったかを数え、集計表を出力する
+    match_count = {}
+    for i in range(len(loto_data) - 1):
+        temp_match_count = 0
+        for j in range(const.LOTO_NUM):
+            if loto_num_data[i][j] in loto_num_data[i + 1]:
+                temp_match_count += 1
+        match_count.setdefault(temp_match_count, 0)
+        match_count[temp_match_count] += 1
+    for key, value in sorted(match_count.items()):
+        print("{} : {:>3}".format(key, value))
+
+    # 25回分の数字の出現数をカウントする
+    n = 25
+    for i in range(len(loto_data) - n - 1):
+        temp_loto_num_data = loto_num_data[i:i + n, :]
+        print(len(temp_loto_num_data))
+        print(temp_loto_num_data[n - 1])
+        # ロトの過去データの集計(各数字の出現回数)
+        loto_number_count = lt.number_count(temp_loto_num_data)
+        # 集計結果の表示
+        # 集計区間を表示して、出現数のカウントをキーでソートして表示する
+        print("[{}] - [{}]".format(i + 1, i + n + 1))
+        print("{}".format(sorted(loto_number_count.items(), key=lambda x: x[0])))
+
+        # # データのチェック
+        # for j in range(const.LOTO_MAX):
+        #     if j + 1 not in loto_number_count:
+        #         loto_number_count.setdefault(j + 1, 0)
+        # # データの順位付け
+        # temp_rank = list(loto_number_count.values())
+        # rank_loto_number_count = lt.rank(temp_rank)
+
+        # temp_sum_rank = 0
+        # temp_rank_combination = []
+        # for num in temp_loto_num_data[-1]:
+        #     temp_rank = rank_loto_number_count[loto_number_count[num]]
+        #     print("[{:>2}]:({:>4})".format(num, temp_rank), end=" ")
+        #     temp_sum_rank += temp_rank
+        #     temp_rank_combination.append(temp_rank)
+        # else:
+        #     print("")
+        #     print("Sum Rank: {}".format(temp_sum_rank))
+        #     print("{}".format(temp_rank_combination))

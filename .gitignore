@@ -2,3 +2,5 @@ __pycache__
 miniloto.ipynb
 analyze_miniloto.ipynb
 MLOTO.code-workspace
+miniloto_processed.csv
+.DS_Store

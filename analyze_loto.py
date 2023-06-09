@@ -834,11 +834,13 @@ def analyze_loto_data():
     n = 25
     for i in range(len(loto_data) - n - 1):
         temp_loto_num_data = loto_num_data[i:i + n, :]
+        print(len(temp_loto_num_data))
+        print(temp_loto_num_data[n - 1])
         # ロトの過去データの集計(各数字の出現回数)
         loto_number_count = lt.number_count(temp_loto_num_data)
         # 集計結果の表示
         # 集計区間を表示して、出現数のカウントをキーでソートして表示する
-        print("[{}] - [{}]".format(i + 1, i + n))
+        print("[{}] - [{}]".format(i + 1, i + n + 1))
         print("{}".format(sorted(loto_number_count.items(), key=lambda x: x[0])))
 
         # # データのチェック
